@@ -1,0 +1,115 @@
+#!/usr/bin/perl
+
+############################################################
+# simpledd - a simple dyndns-client
+#
+# Frank Recker, 2008-2012
+############################################################
+
+use warnings;
+use strict;
+use LWP::UserAgent;
+use Log::Log4perl qw(:easy);
+
+Log::Log4perl->easy_init($DEBUG);
+#Log::Log4perl->easy_init($INFO);
+#Log::Log4perl->easy_init($WARN);
+#Log::Log4perl->easy_init($ERROR);
+#Log::Log4perl->easy_init($FATAL);
+
+my $agent='simpledd/1.0.0';
+my $configfile="$ENV{HOME}/.simpledd";
+my $timefile="$ENV{HOME}/var/simpledd/time";
+my $ipfile="$ENV{HOME}/var/simpledd/ip";
+
+my $interval;
+my $name;
+my $pass;
+my $hostname;
+
+if(!(open INP,"< $configfile")) {
+	FATAL("can't read $configfile: $!");
+	exit(0);
+}
+my @s=<INP>;
+close INP;
+eval join("\n",@s);
+if($@ ne "") {
+	FATAL("configuration $configfile: $@");
+	exit(0);
+}
+
+if(!(open INP,"< $timefile")) {
+	FATAL("can't read $timefile: $!");
+	exit(0);
+}
+my $lasttime=<INP>;
+close INP;
+chomp $lasttime;
+
+my $now=time();
+my $elapsed=$now-$lasttime;
+if($elapsed<0) {
+	FATAL("strange: $now is before $lasttime");
+	exit(0);
+}
+if($elapsed<$interval) {
+	DEBUG("last check is just $elapsed seconds ago - aborting");
+	exit(0);
+}
+
+if(!(open INP,"< $ipfile")) {
+	FATAL("can't read $ipfile: $!");
+	exit(0);
+}
+my $oldip=<INP>;
+close INP;
+chomp $oldip;
+
+my $ua=new LWP::UserAgent;
+$ua->timeout(30);
+$ua->agent($agent);
+my $response=$ua->get('http://checkip.dyndns.org');
+if(!($response->is_success)) {
+	ERROR("checkip failed");
+	exit(0);
+}
+my $co=$response->content;
+if(!($co =~ /(\d*\.\d*\.\d*\.\d*)/)) {
+	FATAL("no ip match: $co");
+	exit(0);
+}
+my $newip=$1;
+
+if(!(open OUT,"> $timefile")) {
+	FATAL("can't write $timefile: $!");
+	exit(0);
+}
+print OUT "$now\n";
+close OUT;
+
+if($oldip eq $newip) {
+	INFO("ip adresse is still $oldip - aborting");
+	exit(0);
+}
+
+my $url="https://${name}:${pass}\@members.dyndns.org:443/nic/update?hostname=${hostname}&myip=${newip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG";
+$response=$ua->get($url);
+if(!($response->is_success)) {
+	ERROR("update failed");
+	exit(0);
+}
+$co=$response->content;
+my $goodcode="good $newip";
+if($co ne $goodcode) {
+	FATAL("update denied: $co");
+	exit(0);
+}
+WARN("ip changed from $oldip to $newip");
+
+if(!(open OUT,"> $ipfile")) {
+	FATAL("can't write $ipfile: $!");
+	exit(0);
+}
+print OUT "$newip\n";
+close OUT;

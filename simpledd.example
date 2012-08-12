@@ -1,0 +1,4 @@
+$interval=600;
+$name="aaa";
+$pass="bbb";
+$hostname="ccc.dyndns.org"

@@ -1,0 +1,42 @@
+1) Create a file .simpledd in your home directory. You may start with
+the file simpledd.example. Entries are:
+
+$interval - minimum numer of seconds between two ip-checks. Choose at
+least 600. Otherwise you mess with dyndns.
+
+$name - your user name at dyndns
+
+$pass - your password
+
+$hostname - the server name which points to your ip-address
+
+The file should contain regular Perl code i.e. every line should end
+with a semicolon.
+
+2) Put the binary simpledd with the executable flag set somewhere, where
+your cronjob can execute it.
+
+3) create the files "$ENV{HOME}/var/simpledd/time" and
+"$ENV{HOME}/var/simpledd/ip" with just one line containing 0. If you
+don't like location of the file, just edit the Perl code.
+
+4) Try calling simpledd from the shell.
+
+5) If you want less messages, just change the log level in the Perl
+code.
+
+6) If you get Perl error messages about missing libraries, then you
+should install these libraries via CPAN or via your packet manager.
+
+7) put the following line in your crontab
+
+*/6 * * * * /path/to/simpledd
+
+Of course you change /path/to to the right path which you have chosen
+under point 2. You should get e-mails whenever simpledd emits a
+message. How many this will be depends on the log level.
+
+8) Don't forget to open the desired ports in your router. And watch
+out for security patches for these services.
+
+9) Have fun!
