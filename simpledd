@@ -58,6 +58,13 @@ if($elapsed<$interval) {
 	exit(0);
 }
 
+if(!(open OUT,"> $timefile")) {
+	FATAL("can't write $timefile: $!");
+	exit(0);
+}
+print OUT "$now\n";
+close OUT;
+
 if(!(open INP,"< $ipfile")) {
 	FATAL("can't read $ipfile: $!");
 	exit(0);
@@ -80,13 +87,6 @@ if(!($co =~ /(\d*\.\d*\.\d*\.\d*)/)) {
 	exit(0);
 }
 my $newip=$1;
-
-if(!(open OUT,"> $timefile")) {
-	FATAL("can't write $timefile: $!");
-	exit(0);
-}
-print OUT "$now\n";
-close OUT;
 
 if($oldip eq $newip) {
 	INFO("ip adresse is still $oldip - aborting");
