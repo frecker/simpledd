@@ -100,16 +100,12 @@ if(!(open OUT,"> $ipfile")) {
 print OUT "$newip\n";
 close OUT;
 
-my $url="https://${name}:${pass}\@members.dyndns.org:443/nic/update?hostname=${hostname}&myip=${newip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG";
+my $url="https://${name}:${pass}\@freedns.afraid.org:443/nic/update?hostname=${hostname}&myip=${newip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG";
 $response=$ua->get($url);
 if(!($response->is_success)) {
 	ERROR("update failed");
 	exit(0);
 }
 $co=$response->content;
-my $goodcode="good $newip";
-if($co ne $goodcode) {
-	FATAL("update denied: $co");
-	exit(0);
-}
+DEBUG("response: $co");
 WARN("ip changed from $oldip to $newip");
