@@ -93,6 +93,13 @@ if($oldip eq $newip) {
 	exit(0);
 }
 
+if(!(open OUT,"> $ipfile")) {
+	FATAL("can't write $ipfile: $!");
+	exit(0);
+}
+print OUT "$newip\n";
+close OUT;
+
 my $url="https://${name}:${pass}\@members.dyndns.org:443/nic/update?hostname=${hostname}&myip=${newip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG";
 $response=$ua->get($url);
 if(!($response->is_success)) {
@@ -106,10 +113,3 @@ if($co ne $goodcode) {
 	exit(0);
 }
 WARN("ip changed from $oldip to $newip");
-
-if(!(open OUT,"> $ipfile")) {
-	FATAL("can't write $ipfile: $!");
-	exit(0);
-}
-print OUT "$newip\n";
-close OUT;
