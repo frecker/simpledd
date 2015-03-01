@@ -3,7 +3,7 @@
 ############################################################
 # simpledd - a simple dyndns-client
 #
-# Frank Recker, 2008-2012
+# Frank Recker, 2008-2015
 ############################################################
 
 use warnings;
@@ -111,5 +111,11 @@ if(!($response->is_success)) {
 	exit(0);
 }
 $co=$response->content;
-WARN("response: $co");
+DEBUG("response: $co");
+my $goodcode="Updated 1 host(s) $hostname to $newip in";
+DEBUG("goodcode: $goodcode");
+if(substr($co,0,length($goodcode)) ne $goodcode) {
+	ERROR("update problem: $co");
+	exit(0);
+}
 WARN("ip changed from $oldip to $newip");
