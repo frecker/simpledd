@@ -11,9 +11,9 @@ use strict;
 use LWP::UserAgent;
 use Log::Log4perl qw(:easy);
 
-Log::Log4perl->easy_init($DEBUG);
+#Log::Log4perl->easy_init($DEBUG);
 #Log::Log4perl->easy_init($INFO);
-#Log::Log4perl->easy_init($WARN);
+Log::Log4perl->easy_init($WARN);
 #Log::Log4perl->easy_init($ERROR);
 #Log::Log4perl->easy_init($FATAL);
 
@@ -46,15 +46,17 @@ if(!(open INP,"< $timefile")) {
 my $lasttime=<INP>;
 close INP;
 chomp $lasttime;
+DEBUG("lasttime: $lasttime");
 
 my $now=time();
+DEBUG("now: $now");
 my $elapsed=$now-$lasttime;
 if($elapsed<0) {
 	FATAL("strange: $now is before $lasttime");
 	exit(0);
 }
 if($elapsed<$interval) {
-	DEBUG("last check is just $elapsed seconds ago - aborting");
+	INFO("last check is just $elapsed seconds ago - aborting");
 	exit(0);
 }
 
@@ -72,6 +74,7 @@ if(!(open INP,"< $ipfile")) {
 my $oldip=<INP>;
 close INP;
 chomp $oldip;
+DEBUG("oldip: $oldip");
 
 my $ua=new LWP::UserAgent;
 $ua->timeout(30);
@@ -83,10 +86,11 @@ if(!($response->is_success)) {
 }
 my $co=$response->content;
 if(!($co =~ /(\d*\.\d*\.\d*\.\d*)/)) {
-	FATAL("no ip match: $co");
+	ERROR("no ip match: $co");
 	exit(0);
 }
 my $newip=$1;
+DEBUG("newip: $newip");
 
 if($oldip eq $newip) {
 	INFO("ip adresse is still $oldip - aborting");
@@ -107,5 +111,5 @@ if(!($response->is_success)) {
 	exit(0);
 }
 $co=$response->content;
-DEBUG("response: $co");
+WARN("response: $co");
 WARN("ip changed from $oldip to $newip");
