@@ -28,20 +28,20 @@ my $pass;
 my $hostname;
 
 if(!(open INP,"< $configfile")) {
-	FATAL("can't read $configfile: $!");
-	exit(0);
+    FATAL("can't read $configfile: $!");
+    exit(0);
 }
 my @s=<INP>;
 close INP;
 eval join("\n",@s);
 if($@ ne "") {
-	FATAL("configuration $configfile: $@");
-	exit(0);
+    FATAL("configuration $configfile: $@");
+    exit(0);
 }
 
 if(!(open INP,"< $timefile")) {
-	FATAL("can't read $timefile: $!");
-	exit(0);
+    FATAL("can't read $timefile: $!");
+    exit(0);
 }
 my $lasttime=<INP>;
 close INP;
@@ -52,24 +52,24 @@ my $now=time();
 DEBUG("now: $now");
 my $elapsed=$now-$lasttime;
 if($elapsed<0) {
-	FATAL("strange: $now is before $lasttime");
-	exit(0);
+    FATAL("strange: $now is before $lasttime");
+    exit(0);
 }
 if($elapsed<$interval) {
-	INFO("last check is just $elapsed seconds ago - aborting");
-	exit(0);
+    INFO("last check is just $elapsed seconds ago - aborting");
+    exit(0);
 }
 
 if(!(open OUT,"> $timefile")) {
-	FATAL("can't write $timefile: $!");
-	exit(0);
+    FATAL("can't write $timefile: $!");
+    exit(0);
 }
 print OUT "$now\n";
 close OUT;
 
 if(!(open INP,"< $ipfile")) {
-	FATAL("can't read $ipfile: $!");
-	exit(0);
+    FATAL("can't read $ipfile: $!");
+    exit(0);
 }
 my $oldip=<INP>;
 close INP;
@@ -81,25 +81,25 @@ $ua->timeout(30);
 $ua->agent($agent);
 my $response=$ua->get('http://checkip.dyndns.org');
 if(!($response->is_success)) {
-	ERROR("checkip failed");
-	exit(0);
+    ERROR("checkip failed");
+    exit(0);
 }
 my $co=$response->content;
 if(!($co =~ /(\d*\.\d*\.\d*\.\d*)/)) {
-	ERROR("no ip match: $co");
-	exit(0);
+    ERROR("no ip match: $co");
+    exit(0);
 }
 my $newip=$1;
 DEBUG("newip: $newip");
 
 if($oldip eq $newip) {
-	INFO("ip adresse is still $oldip - aborting");
-	exit(0);
+    INFO("ip adresse is still $oldip - aborting");
+    exit(0);
 }
 
 if(!(open OUT,"> $ipfile")) {
-	FATAL("can't write $ipfile: $!");
-	exit(0);
+    FATAL("can't write $ipfile: $!");
+    exit(0);
 }
 print OUT "$newip\n";
 close OUT;
@@ -107,15 +107,15 @@ close OUT;
 my $url="https://${name}:${pass}\@freedns.afraid.org:443/nic/update?hostname=${hostname}&myip=${newip}&wildcard=NOCHG&mx=NOCHG&backmx=NOCHG";
 $response=$ua->get($url);
 if(!($response->is_success)) {
-	ERROR("update failed");
-	exit(0);
+    ERROR("update failed");
+    exit(0);
 }
 $co=$response->content;
 DEBUG("response: $co");
 my $goodcode="Updated 1 host(s) $hostname to $newip in";
 DEBUG("goodcode: $goodcode");
 if(substr($co,0,length($goodcode)) ne $goodcode) {
-	ERROR("update problem: $co");
-	exit(0);
+    ERROR("update problem: $co");
+    exit(0);
 }
 WARN("ip changed from $oldip to $newip");
